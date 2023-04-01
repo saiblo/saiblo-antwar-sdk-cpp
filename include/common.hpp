@@ -196,8 +196,8 @@ static constexpr int TOWER_BUILD_PRICE_BASE = 15,
 static constexpr int LEVEL2_TOWER_UPGRADE_PRICE = 60,
                      LEVEL3_TOWER_UPGRADE_PRICE = 200;
 static constexpr double TOWER_DOWNGRADE_REFUND_RATIO = 0.8;
-static constexpr int LEVEL2_BASE_UPGRADE_PRICE = 120,
-                     LEVEL3_BASE_UPGRADE_PRICE = 200;
+static constexpr int LEVEL2_BASE_UPGRADE_PRICE = 200,
+                     LEVEL3_BASE_UPGRADE_PRICE = 250;
 
 /* Pheromone */
 

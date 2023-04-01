@@ -409,9 +409,9 @@ struct GameInfo
                 return  is_valid_pos(op.arg0, op.arg1)
                         && super_weapon_cd[player_id][op.type % 10] <= 0;
             case UpgradeGenerationSpeed:
-                return bases[player_id].gen_speed_level < 3;
+                return bases[player_id].gen_speed_level < 2;
             case UpgradeGeneratedAnt:
-                return bases[player_id].ant_level < 3;
+                return bases[player_id].ant_level < 2;
             default:
                 return false;
         }
@@ -635,8 +635,8 @@ struct GameInfo
     {
         switch (level)
         {
-            case 1: return LEVEL2_BASE_UPGRADE_PRICE;
-            case 2: return LEVEL3_BASE_UPGRADE_PRICE;
+            case 0: return LEVEL2_BASE_UPGRADE_PRICE;
+            case 1: return LEVEL3_BASE_UPGRADE_PRICE;
         }
         return -1;
     }

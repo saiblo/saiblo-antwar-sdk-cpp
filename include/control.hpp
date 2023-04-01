@@ -249,7 +249,7 @@ public:
         int sum = 0;
         for (auto& oper: self_operations)
             sum += info.get_operation_income(self_player_id, oper);
-        if (sum + info.get_operation_income(self_player_id, op) > info.coins[self_player_id])
+        if (sum + info.get_operation_income(self_player_id, op) + info.coins[self_player_id] < 0)
             return false;
         // Add the operation
         self_operations.emplace_back(std::move(op));
