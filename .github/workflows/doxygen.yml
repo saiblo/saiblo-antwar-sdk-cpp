@@ -23,12 +23,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install doxygen
         run: |
-          sudo apt update
-          sudo apt install doxygen -y
+          wget https://www.doxygen.nl/files/doxygen-1.9.6.linux.bin.tar.gz
+          tar xf doxygen-1.9.6.linux.bin.tar.gz
       - name: Build document
         run: |
           wget https://upload.cppreference.com/mwiki/images/f/f8/cppreference-doxygen-web.tag.xml
-          doxygen
+          ./doxygen-1.9.6/bin/doxygen
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
