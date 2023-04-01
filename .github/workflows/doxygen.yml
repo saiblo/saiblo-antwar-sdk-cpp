@@ -23,8 +23,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install doxygen
         run: |
-          apt update
-          apt install doxygen -y
+          sudo apt update
+          sudo apt install doxygen -y
       - name: Build document
         run: doxygen
       - name: Upload artifact
