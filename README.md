@@ -2,6 +2,8 @@
 
 这里是第二十七届智能体大赛 ANTWar 的 C++SDK 使用文档。文档主要包含用户指南和样例 AI ，代码的详细信息请参见 API Reference 文档。希望各位能有良好的参赛体验～
 
+[TOC]
+
 ## 1. 预备！
 请先前往 GitHub下载 C++SDK 包，确认内含 `control.hpp`、`io.hpp`、`game_info.hpp`、`common.hpp`、`simulate.hpp`、`template.hpp`、`optional.hpp`、`optional-impl.hpp`、`example/`、`Makefile`。
 

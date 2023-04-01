@@ -26,7 +26,9 @@ jobs:
           sudo apt update
           sudo apt install doxygen -y
       - name: Build document
-        run: doxygen
+        run: |
+          wget https://upload.cppreference.com/mwiki/images/f/f8/cppreference-doxygen-web.tag.xml
+          doxygen
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:

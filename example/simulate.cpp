@@ -1,5 +1,5 @@
-#include "../control.hpp"
-#include "../simulate.hpp"
+#include "../include/control.hpp"
+#include "../include/simulate.hpp"
 
 // Construct a Controller object and initialize it
 Controller c;

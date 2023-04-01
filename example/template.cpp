@@ -1,4 +1,4 @@
-#include "../template.hpp"
+#include "../include/template.hpp"
 
 // A simple AI that always try building towers
 std::vector<Operation> simple_ai(int player_id, const GameInfo &game_info)
