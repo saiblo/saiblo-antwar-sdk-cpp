@@ -446,7 +446,10 @@ struct Tower
         std::partial_sort(idxs.begin(), bound, idxs.end(), [&] (int i, int j) {
             int dist1 = distance(ants[i].x, ants[i].y, x, y),
                 dist2 = distance(ants[j].x, ants[j].y, x, y);
-            return dist1 < dist2;
+            if (dist1 != dist2)
+                return dist1 < dist2;
+            else
+                return i < j;
         });
         // Get first n elements
         if (idxs.size() > target_num)
