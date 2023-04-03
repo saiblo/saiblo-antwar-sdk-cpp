@@ -32,7 +32,6 @@ struct GameInfo
     Base bases[2];                                  ///< Bases of both sides: "bases[player_id]"
     int coins[2];                                   ///< Coins of both sides: "coins[player_id]"
     double pheromone[2][MAP_SIZE][MAP_SIZE];        ///< Pheromone of each point on the map: "pheromone[player_id][x][y]"
-    BuildingType building_tag[MAP_SIZE][MAP_SIZE];  ///< Building tag of each point on the map: "building_tag[x][y]"
     std::vector<SuperWeapon> super_weapons;         ///< Super weapons being used
     int super_weapon_cd[2][SuperWeaponCount];       ///< Super weapon cooldown of both sides: "super_weapon_cd[player_id]"
     
@@ -49,13 +48,6 @@ struct GameInfo
             for(int j = 0; j < MAP_SIZE; j++)
                 for(int k = 0; k < MAP_SIZE; k++)
                     pheromone[i][j][k] = random.get() * std::pow(2, -46) + 8;
-        // Initialization building tags
-        for (int i = 0; i < MAP_SIZE; ++i)
-            for (int j = 0; j < MAP_SIZE; ++j)
-                building_tag[i][j] = BuildingType::Empty;
-        // Mark 2 bases
-        building_tag[Base::POSITION[0][0]][Base::POSITION[0][1]] = BuildingType::Base;
-        building_tag[Base::POSITION[1][0]][Base::POSITION[1][1]] = BuildingType::Base;
     }
 
     /* Getters */
@@ -180,7 +172,6 @@ struct GameInfo
 
     /**
      * @brief Emplace a new tower at the back of vector "towers".
-     *        Update building tag at the corresponding point.
      * @param id The ID of the new tower.
      * @param player The player id of the new tower.
      * @param x The x-coordinate of the new tower.
@@ -190,7 +181,6 @@ struct GameInfo
     void build_tower(int id, int player, int x, int y, TowerType type = TowerType::Basic)
     {
         towers.emplace_back(id, player, x, y, type);
-        building_tag[x][y] = BuildingType::Tower;
     }
 
     /**
@@ -210,7 +200,7 @@ struct GameInfo
 
     /**
      * @brief Find the tower of a specific ID and downgrade it if possible. Otherwise,
-     *        erase it from vector "towers". Update building tag at the corresponding point.
+     *        erase it from vector "towers".
      * @param id The ID of the tower about to be destroyed.
      */
     void downgrade_or_destroy_tower(int id)
@@ -222,10 +212,7 @@ struct GameInfo
             if (it->is_downgrade_valid()) // Downgrade
                 it->downgrade();
             else // Destroy
-            {
-                building_tag[it->x][it->y] = BuildingType::Empty;
                 towers.erase(it);
-            }
         }
     }
 
@@ -385,9 +372,8 @@ struct GameInfo
         switch (op.type)
         {
             case BuildTower:
-                return is_valid_pos(op.arg0, op.arg1)
-                       && is_current_and_around_empty(op.arg0, op.arg1)
-                       && is_highland(player_id, op.arg0, op.arg1)
+                return is_highland(player_id, op.arg0, op.arg1)
+                       && !tower_at(op.arg0, op.arg1)
                        && !is_shielded_by_emp(player_id, op.arg0, op.arg1);
             case UpgradeTower:
             {
@@ -487,26 +473,6 @@ struct GameInfo
             }
         }
         return income + coins[player_id] >= 0;
-    }
-
-    /**
-     * @brief Check if a point and its surrounding 6 points are all empty (have no building).
-     * @param x The x-coordinate of the point.
-     * @param y The y-coordinate of the point.
-     * @return Whether the point and its surrounding 6 points are all empty.
-     */
-    bool is_current_and_around_empty(int x, int y) const
-    {
-        if (building_tag[x][y] != BuildingType::Empty)
-            return false;
-        for (int i = 0, _x, _y; i < 6; ++i)
-        {
-            _x = x + OFFSET[y % 2][i][0];
-            _y = y + OFFSET[y % 2][i][1];
-            if (is_valid_pos(_x, _y) && building_tag[_x][_y] != BuildingType::Empty)
-                return false;
-        }
-        return true;
     }
 
     /**

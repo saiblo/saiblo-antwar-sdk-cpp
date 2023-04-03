@@ -61,16 +61,11 @@ private:
 
     /**
      * @brief Update "info.towers" with vector "new_towers" and reset "info.next_tower_id".
-     *        Update "info.building_tag" at the corresponding points.
      * @param new_towers The vector of towers (read from Judger) for updating. 
      */
     void update_towers(std::vector<Tower>& new_towers)
     {
-        for (Tower &t : info.towers)
-            info.building_tag[t.x][t.y] = BuildingType::Empty;
         info.towers = std::move(new_towers);
-        for (Tower &t : info.towers)
-            info.building_tag[t.x][t.y] = BuildingType::Tower;
         info.next_tower_id = info.towers.empty() ? 0 : info.towers.back().id + 1;
     }
 
