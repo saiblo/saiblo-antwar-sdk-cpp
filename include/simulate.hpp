@@ -37,23 +37,33 @@ private:
     std::vector<Operation> operations[2];   ///< Players' operations which are about to be applied to current game state. 
 
     /**
-     * @brief Check if any tower-related operation has been added to a player's operations.
-     * @return Whether there is any tower-related operation in operations[player_id].
+     * @brief Check if a BuildTower operation at the same position has been added to a player's operations.
+     * @return Whether there is a BuildTower operation at (x, y) in operations[player_id].
      */
-    bool has_tower_related_operation(int player_id) const
+    bool has_build_tower_operation_at(int player_id, int x, int y) const
     {
-        return std::any_of(operations[player_id].begin(), operations[player_id].end(), [](const Operation &op)
-                           { return op.is_tower_related(); });
+        return std::any_of(operations[player_id].begin(), operations[player_id].end(), [x, y](const Operation &op)
+                           { return op.type == BuildTower && op.arg0 == x && op.arg1 == y; });
     }
 
     /**
-     * @brief Check if any base-related operation has been added to a player's operations.
-     * @return Whether there is any base-related operation in operations[player_id].
+     * @brief Check if a UpgradeTower or DowngradeTower operation of the same tower id has been added to a player's operations.
+     * @return Whether there is a UpgradeTower or DowngradeTower operation of 'tower_id' in operations[player_id].
+     */
+    bool has_upgrade_or_downgrade_tower_operation_of(int player_id, int tower_id) const
+    {
+        return std::any_of(operations[player_id].begin(), operations[player_id].end(), [tower_id](const Operation &op)
+                           { return (op.type == UpgradeTower || op.type == DowngradeTower) && op.arg0 == tower_id; });
+    }
+    
+    /**
+     * @brief Check if a base-related operation has been added to a player's operations.
+     * @return Whether there is a base-related operation in operations[player_id].
      */
     bool has_base_related_operation(int player_id) const
     {
         return std::any_of(operations[player_id].begin(), operations[player_id].end(), [](const Operation &op)
-                           { return op.is_base_related(); });
+                           { return op.type == UpgradeGeneratedAnt || op.type == UpgradeGenerationSpeed; });
     }
 
     /* Round settlement process */
@@ -215,23 +225,32 @@ public:
      */
     bool add_operation_of_player(int player_id, Operation op)
     {
-        // Check tower-related
-        if (op.is_tower_related() && has_tower_related_operation(player_id))
+        // Check building tower
+        if (op.type == OperationType::BuildTower && has_build_tower_operation_at(player_id, op.arg0, op.arg1))
             return false;
-        // Check base-related
-        if (op.is_base_related() && has_base_related_operation(player_id))
+        // Check upgrading tower and downgrading tower
+        if ((op.type == OperationType::UpgradeTower || op.type == OperationType::DowngradeTower)
+            && has_upgrade_or_downgrade_tower_operation_of(player_id, op.arg0))
             return false;
+        // Check upgrading base
+        if ((op.type == OperationType::UpgradeGeneratedAnt || op.type == OperationType::UpgradeGenerationSpeed) 
+            && has_base_related_operation(player_id))
+            return false;
+        
         // Check operation validness
         if (!info.is_operation_valid(player_id, op))
             return false;
-        // Check if the operation is affordable
-        int sum = 0;
-        for (auto& oper: operations[player_id])
-            sum += info.get_operation_income(player_id, oper);
-        if (sum + info.get_operation_income(player_id, op) + info.coins[player_id] < 0)
-            return false;
-        // Add the operation
+        
+        // Check if the current operation list is affordable (including the new one)
         operations[player_id].emplace_back(std::move(op));
+        if (!info.check_affordable(player_id, operations[player_id]))
+        {
+            // Unaffordable. Remove the new operation.
+            operations[player_id].pop_back();
+            return false;
+        }
+
+        // Pass all checks. The operation has been added successfully.
         return true;
     }
 

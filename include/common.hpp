@@ -759,25 +759,6 @@ struct Operation
         out << std::endl;
         return out;
     }
-    
-    /**
-     * @brief Check if the operation is tower-related, i.e. involving building, upgrading,
-     * downgrading or destroying.
-     * @return Tower-related or not.
-     */
-    bool is_tower_related() const
-    {
-        return type == BuildTower || type == UpgradeTower || type == DowngradeTower;
-    }
-
-    /**
-     * @brief Check if the operation is base-related, i.e. involving upgrading generation speed or ant level.
-     * @return Base-related or not.
-     */
-    bool is_base_related() const
-    {
-        return type == UpgradeGenerationSpeed || type == UpgradeGeneratedAnt;
-    }
 };
 
 /**

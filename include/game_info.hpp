@@ -377,8 +377,8 @@ struct GameInfo
      * @param op The operation.
      * @return Whether the operation is valid (i.e. can be applied).
      * @note This function does not check whether the player has enough coins, or
-     * there are multiple operations of the same type. See Controller::is_operation_valid()
-     * and Simulator::is_operation_valid() for those checks.
+     * there are multiple operations of the same type. See Controller::append_self_operation()
+     * and Simulator::add_operation_of_player() for those checks.
      */
     bool is_operation_valid(int player_id, const Operation& op) const
     {
@@ -452,6 +452,41 @@ struct GameInfo
             default:
                 return 0;
         }
+    }
+    
+    /**
+     * @brief Check whether a player can afford a set of operations.
+     * @param player_id The player.
+     * @param ops The operation set.
+     * @return Whether the player can afford these operations.
+     */
+    bool check_affordable(int player_id, const std::vector<Operation>& ops) const
+    {
+        int income = 0, tower_num = tower_num_of_player(player_id);
+        for (const Operation& op : ops)
+        {
+            // Special handling for BuildTower and DowngradeTower, for the cost of
+            // BuildTower and DowngradeTower depends on the number of towers of the player.
+            switch (op.type)
+            {
+            case OperationType::BuildTower:
+                income -= build_tower_cost(tower_num++);
+                break;
+            case OperationType::DowngradeTower:
+            {
+                auto t = tower_of_id(op.arg0);
+                if (t.value().type == TowerType::Basic) // To be destroyed
+                    income += destroy_tower_income(tower_num--);
+                else // To be downgraded
+                    income += downgrade_tower_income(t.value().type);
+                break;
+            }
+            default:
+                income += get_operation_income(player_id, op);
+                break;
+            }
+        }
+        return income + coins[player_id] >= 0;
     }
 
     /**
