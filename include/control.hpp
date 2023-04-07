@@ -27,36 +27,6 @@ private:
     std::vector<Operation> self_operations;     ///< Self operations which are about to be sent
     std::vector<Operation> opponent_operations; ///< Opponent's operations received from judger
 
-    /**
-     * @brief Check if a BuildTower operation at the same position has been added to your operations.
-     * @return Whether there is a BuildTower operation at (x, y) in self_operations.
-     */
-    bool has_build_tower_operation_at(int x, int y) const
-    {
-        return std::any_of(self_operations.begin(), self_operations.end(), [x, y](const Operation &op)
-                           { return op.type == BuildTower && op.arg0 == x && op.arg1 == y; });
-    }
-
-    /**
-     * @brief Check if a UpgradeTower or DowngradeTower operation of the same tower id has been added to your operations.
-     * @return Whether there is a UpgradeTower or DowngradeTower operation of 'tower_id' in self_operations.
-     */
-    bool has_upgrade_or_downgrade_tower_operation_of(int tower_id) const
-    {
-        return std::any_of(self_operations.begin(), self_operations.end(), [tower_id](const Operation &op)
-                           { return (op.type == UpgradeTower || op.type == DowngradeTower) && op.arg0 == tower_id; });
-    }
-    
-    /**
-     * @brief Check if a base-related operation has been added to your operations.
-     * @return Whether there is a base-related operation in self_operations.
-     */
-    bool has_base_related_operation() const
-    {
-        return std::any_of(self_operations.begin(), self_operations.end(), [](const Operation &op)
-                           { return op.type == UpgradeGeneratedAnt || op.type == UpgradeGenerationSpeed; });
-    }
-
     /* Updating process after calling read_round_info() */
 
     /**
@@ -241,33 +211,12 @@ public:
      */
     bool append_self_operation(Operation op)
     {
-        // Check building tower
-        if (op.type == OperationType::BuildTower && has_build_tower_operation_at(op.arg0, op.arg1))
-            return false;
-        // Check upgrading tower and downgrading tower
-        if ((op.type == OperationType::UpgradeTower || op.type == OperationType::DowngradeTower)
-            && has_upgrade_or_downgrade_tower_operation_of(op.arg0))
-            return false;
-        // Check upgrading base
-        if ((op.type == OperationType::UpgradeGeneratedAnt || op.type == OperationType::UpgradeGenerationSpeed) 
-            && has_base_related_operation())
-            return false;
-        
-        // Check operation validness
-        if (!info.is_operation_valid(self_player_id, op))
-            return false;
-        
-        // Check if the current operation list is affordable (including the new one)
-        self_operations.emplace_back(std::move(op));
-        if (!info.check_affordable(self_player_id, self_operations))
+        if (info.is_operation_valid(self_player_id, self_operations, op))
         {
-            // Unaffordable. Remove the new operation.
-            self_operations.pop_back();
-            return false;
+            self_operations.push_back(op);
+            return true;
         }
-
-        // Add the operation
-        return true;
+        return false;
     }
 
     /**

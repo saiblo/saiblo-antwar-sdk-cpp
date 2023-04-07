@@ -364,8 +364,7 @@ struct GameInfo
      * @param op The operation.
      * @return Whether the operation is valid (i.e. can be applied).
      * @note This function does not check whether the player has enough coins, or
-     * there are multiple operations of the same type. See Controller::append_self_operation()
-     * and Simulator::add_operation_of_player() for those checks.
+     * there are multiple operations of the same type. See another overload for those checks.
      */
     bool is_operation_valid(int player_id, const Operation& op) const
     {
@@ -401,6 +400,69 @@ struct GameInfo
             default:
                 return false;
         }
+    }
+
+    /**
+     * @brief Check whether the newly added operation is valid, considering not only the operation itself,
+     * but also the operations added before and the player's coins.
+     * @param player_id The player.
+     * @param ops Operations already added, with the newly added one at the end.
+     * @return Whether the operation is valid.
+     */
+    bool is_operation_valid(int player_id, const std::vector<Operation>& ops, const Operation& new_op) const
+    {
+        // Check if there are multiple operations of the same type
+        bool collide = false;
+        switch (new_op.type)
+        {
+            // At specified position only one tower can be built
+            case OperationType::BuildTower:
+                collide = std::any_of(ops.begin(), ops.end(), [&](const Operation& op) {
+                    return op.type == BuildTower && op.arg0 == new_op.arg0 && op.arg1 == new_op.arg1;
+                });
+                break;
+            // A tower can only be upgraded/downgraded once
+            case OperationType::UpgradeTower:
+            case OperationType::DowngradeTower:
+                collide = std::any_of(ops.begin(), ops.end(), [&](const Operation& op) {
+                    return (op.type == UpgradeTower || op.type == DowngradeTower) && op.arg0 == new_op.arg0;
+                });
+                break;
+            // Base can only be upgraded once
+            case OperationType::UpgradeGeneratedAnt:
+            case OperationType::UpgradeGenerationSpeed:
+                collide = std::any_of(ops.begin(), ops.end(), [&](const Operation& op) {
+                    return op.type == UpgradeGeneratedAnt || op.type == UpgradeGenerationSpeed;
+                });
+                break;
+            // Super weapon of specified type can only be used once
+            case OperationType::UseLightningStorm:
+            case OperationType::UseEmpBlaster:
+            case OperationType::UseDeflector:
+            case OperationType::UseEmergencyEvasion:
+                collide = std::any_of(ops.begin(), ops.end(), [&](const Operation& op) {
+                    return op.type == new_op.type;
+                });
+                break;
+            // Illegal operation type
+            default:
+                return false;
+        }
+        if (collide)
+            return false;
+
+        // Check operation validness
+        if (!is_operation_valid(player_id, new_op))
+            return false;
+        
+        // Check if the player has enough coins
+        std::vector<Operation> new_ops(ops);
+        new_ops.push_back(new_op);
+        if (!check_affordable(player_id, new_ops))
+            return false;
+
+        // Pass all checks. The operation has been added successfully.
+        return true;
     }
 
     /**
