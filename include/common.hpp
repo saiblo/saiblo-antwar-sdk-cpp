@@ -442,7 +442,7 @@ struct Tower
         // Initialize index array for reference
         std::vector<int> idxs = get_attackable_ants(ants, x, y, range);
         // Partial sort to get first n elements
-        auto bound = target_num <= ants.size() ? (idxs.begin() + target_num) : idxs.end();
+        auto bound = target_num <= idxs.size() ? (idxs.begin() + target_num) : idxs.end();
         std::partial_sort(idxs.begin(), bound, idxs.end(), [&] (int i, int j) {
             int dist1 = distance(ants[i].x, ants[i].y, x, y),
                 dist2 = distance(ants[j].x, ants[j].y, x, y);
