@@ -106,6 +106,7 @@ private:
             {
                 ant.state = AntState::Success;
                 info.update_base_hp(!ant.player, -1);
+                info.update_coin(ant.player, 5);
                 // If hp of one side's base reaches 0, game over 
                 if (info.bases[!ant.player].hp <= 0)
                     return (ant.player == 0) ? GameState::Player0Win : GameState::Player1Win;
