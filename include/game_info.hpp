@@ -721,8 +721,20 @@ struct GameInfo
      */
     void use_super_weapon(SuperWeaponType type, int player, int x, int y)
     {
-        // Add a new super weapon
-        super_weapons.emplace_back(type, player, x, y);
+        // Construct a super weapon
+        SuperWeapon sw(type, player, x, y);
+        // Apply EmergercyEvasion directly
+        if (sw.type == EmergencyEvasion)
+        {
+            for (Ant &ant : ants)
+            {
+                if (sw.is_in_range(ant.x, ant.y) && ant.player == sw.player)
+                    ant.evasion = 2;
+            }
+        }
+        // Add to super weapon list for other super weapons
+        else
+            super_weapons.emplace_back(std::move(sw));
         // Reset cd
         super_weapon_cd[player][type] = SUPER_WEAPON_INFO[type][2];
     }
@@ -770,48 +782,13 @@ struct GameInfo
                 ++it;
                 continue;
             }
+            // Count down
             it->left_time--;
+            // Clear if timeout
             if (it->left_time <= 0)
                 it = super_weapons.erase(it);
             else
                 ++it;
-        }
-    }
-
-    /**
-     * @brief Apply all active super weapons of a player. 
-     */
-    void apply_active_super_weapons(int player_id)
-    {
-        for (const SuperWeapon& super_weapon : super_weapons)
-        {
-            if (super_weapon.player != player_id)
-                continue;
-            // Only apply active super weapons (LightningStorm and EmergencyEvasion) 
-            if (super_weapon.type == SuperWeaponType::LightningStorm)
-            {
-                for (Ant &ant : ants)
-                {
-                    if (super_weapon.is_in_range(ant.x, ant.y) 
-                        && ant.player != super_weapon.player)
-                    {
-                        ant.hp = 0;
-                        ant.state = AntState::Fail;
-                        update_coin(super_weapon.player, ant.reward());
-                    }
-                }
-            }
-            else if (super_weapon.type == SuperWeaponType::EmergencyEvasion)
-            {
-                for (Ant &ant : ants)
-                {
-                    if (super_weapon.is_in_range(ant.x, ant.y) 
-                        && ant.player == super_weapon.player)
-                    {
-                        ant.evasion = 2;
-                    }
-                }
-            }
         }
     }
 

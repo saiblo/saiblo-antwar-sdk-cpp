@@ -39,7 +39,7 @@ private:
     /* Round settlement process */
 
     /**
-     * @brief Towers try attacking ants.
+     * @brief Lightning storms snd towers try attacking ants.
      * 
      * @note A tower may not attack if it has not cooled down (i.e. CD > 0) or if no target is available.
      * Even if it is able to attack, a tower may not cause any damage due to item effects.
@@ -51,6 +51,26 @@ private:
      */
     void attack_ants()
     {
+        /* Lightning Storm Attack */
+
+        for (SuperWeapon& sw: info.super_weapons)
+        {
+            if(sw.type != SuperWeaponType::LightningStorm)
+                continue;
+            for (Ant &ant : info.ants)
+            {
+                if (sw.is_in_range(ant.x, ant.y) 
+                    && ant.player != sw.player)
+                {
+                    ant.hp = 0;
+                    ant.state = AntState::Fail;
+                    info.update_coin(sw.player, ant.reward());
+                }
+            }
+        }
+        
+        /* Tower Attack */
+        
         // Set deflector property
         for (Ant& ant: info.ants)
             ant.deflector = info.is_shielded_by_deflector(ant);
@@ -58,7 +78,7 @@ private:
         for (Tower& tower: info.towers)
         {
             // Skip if shielded by EMP
-            if (info.is_shielded_by_emp(tower.player, tower.x, tower.y))
+            if (info.is_shielded_by_emp(tower))
                 continue;
             // Try to attack
             auto targets = tower.attack(info.ants);
@@ -215,8 +235,6 @@ public:
         // 2) apply opponent's operations
         for (auto& op: operations[player_id])
             info.apply_operation(player_id, op);
-        // 3) apply active super weapons
-        info.apply_active_super_weapons(player_id);
     }
 
     /**
