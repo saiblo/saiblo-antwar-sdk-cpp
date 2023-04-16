@@ -383,14 +383,15 @@ struct Tower
     /**
      * @brief Construct a new tower with given information.
      * @param type (Optional) Type of the tower, with TowerType::Basic as default.
-     * @param cd (Optional) CD time of the tower, with 0 (already cooled down) as default.
+     * @param cd (Optional) CD time of the tower.
      */
-    Tower(int id, int player, int x, int y, TowerType type = TowerType::Basic, int cd = 0)
+    Tower(int id, int player, int x, int y, TowerType type = TowerType::Basic, int cd = -1)
         : id(id), player(player), x(x), y(y), type(type), cd(cd)
     {
-        upgrade(type);
+        upgrade(type); // CD is reset to the max
+        if (cd != -1) // If CD is given
+            this->cd = cd;
     }
-
     /**
      * @brief Try to attack ants around, and update CD time.
      * @param ants Reference to all ants on the map, holding in a vector.
