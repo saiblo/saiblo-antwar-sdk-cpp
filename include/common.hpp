@@ -245,7 +245,7 @@ struct Ant
      * @brief Construct a new ant with given information.
      */
     Ant(int id, int player, int x, int y, int hp, int level, int age, AntState state)
-        : id(id), player(player), x(x), y(y), hp(hp), level(level), age(age), state(state), evasion(0) {}
+        : id(id), player(player), x(x), y(y), hp(hp), level(level), age(age), state(state), evasion(0), deflector(false) {}
     
     /**
      * @brief Move the ant in a specified direction.
